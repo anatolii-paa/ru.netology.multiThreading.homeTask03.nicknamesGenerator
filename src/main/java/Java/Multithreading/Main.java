@@ -5,23 +5,58 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
 
-    public static int threeLettersCounter = 0, fourLetterCounter = 0, fiveLettersCounter = 0;
-    public static final int n = 100000;
+    public static final int n = 100_000;
+
+    static AtomicInteger threeLettersAtomic = new AtomicInteger(0);
+    static AtomicInteger fourLettersAtomic = new AtomicInteger(0);
+    static AtomicInteger fiveLettersAtomic = new AtomicInteger(0);
+
 
     public static void main(String[] args) throws InterruptedException {
 
         Random random = new Random();
-        AtomicInteger threeLettersAtomic = new AtomicInteger(threeLettersCounter);
-        AtomicInteger fourLettersAtomic = new AtomicInteger(fourLetterCounter);
-        AtomicInteger fiveLettersAtomic = new AtomicInteger(fiveLettersCounter);
-
 
         String[] texts = new String[n];
 
-        for (int i = 0; i < texts.length; i++) {
+        for (int i = 0; i < texts.length; i++)
             texts[i] = generateText("abc", 3 + random.nextInt(3));
-//            System.out.println(texts[i]);
+
+        TestPalindrom(texts, n);
+        TestOneSameLetter(texts, n);
+        TestQueueLetter(texts, n);
+
+        System.out.println("Красивых слов с длиной 3: " + threeLettersAtomic.get());
+        System.out.println("Красивых слов с длиной 4: " + fourLettersAtomic.get());
+        System.out.println("Красивых слов с длиной 5: " + fiveLettersAtomic.get());
+
+    }
+
+    ;
+
+    public static String generateText(String letters, int length) {
+        Random random = new Random();
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < length; i++)
+            text.append(letters.charAt(random.nextInt(letters.length())));
+        return text.toString();
+    }
+
+    private static void IncrementAndGetMethod(String text) {
+
+        switch (text.length()) {
+            case 3:
+                threeLettersAtomic.incrementAndGet();
+                break;
+            case 4:
+                fourLettersAtomic.incrementAndGet();
+                break;
+            case 5:
+                fiveLettersAtomic.incrementAndGet();
+                break;
         }
+    }
+
+    public static void TestPalindrom(String[] texts, int n) throws InterruptedException {
 
         Runnable palindrom = () -> {
 
@@ -38,25 +73,19 @@ public class Main {
                     left++;
                     right--;
                 }
-                if (palindromFlag == true) {
-                    if (texts[i].length() == 3) {
-                        threeLettersAtomic.incrementAndGet();
-//                        System.out.println("! " + texts[i] + " is threeLettersPalindrom");
-                    }
-                    if (texts[i].length() == 4) {
-                        fourLettersAtomic.incrementAndGet();
-//                        System.out.println("! " + texts[i] + " is fourLettersPalindrom");
-                    }
-                    if (texts[i].length() == 5) {
-                        fiveLettersAtomic.incrementAndGet();
-//                        System.out.println("! " + texts[i] + " is fiveLettersPalindrom");
-                    }
-                } else {
-//                    System.out.println(texts[i] + " is not palindrom");
-                }
-                ;
+                if (palindromFlag)
+                    IncrementAndGetMethod(texts[i]);
+
             }
         };
+
+        Thread palindromThread = new Thread(palindrom);
+        palindromThread.start();
+        palindromThread.join();
+    }
+
+
+    public static void TestOneSameLetter(String[] texts, int n) throws InterruptedException {
 
         Runnable oneSameLetter = () -> {
 
@@ -71,30 +100,19 @@ public class Main {
                     ;
                     current++;
                 }
-                if (oneLetterFlag == true) {
-                    if (texts[i].length() == 3) {
-                        threeLettersAtomic.incrementAndGet();
-//                        System.out.println("! " + texts[i] + " is threeSameLetters text");
-                    }
-                    if (texts[i].length() == 4) {
-                        fourLettersAtomic.incrementAndGet();
-//                        System.out.println("! " + texts[i] + " is fourSameLetters text");
-                    }
-                    if (texts[i].length() == 5) {
-                        fiveLettersAtomic.incrementAndGet();
-//                        System.out.println("! " + texts[i] + " is fiveSameLetters");
-                    }
-                } else {
-//                    System.out.println(texts[i] + " is not sameLetters text");
-                }
-                ;
+                if (oneLetterFlag)
+                    IncrementAndGetMethod(texts[i]);
 
             }
-
         };
 
-        Runnable queueLetter = () -> {
+        Thread sameLettersThread = new Thread(oneSameLetter);
+        sameLettersThread.start();
+        sameLettersThread.join();
+    }
 
+    public static void TestQueueLetter(String[] texts, int n) throws InterruptedException {
+        Runnable queueLetter = () -> {
             for (int i = 0; i < n; i++) {
                 boolean queueLetterFlag = true;
                 int current = 0;
@@ -106,54 +124,13 @@ public class Main {
                     ;
                     current++;
                 }
-                if (queueLetterFlag == true) {
-                    if (texts[i].length() == 3) {
-                        threeLettersAtomic.incrementAndGet();
-//                        System.out.println("! " + texts[i] + " is threeQueueLetters text");
-                    }
-                    if (texts[i].length() == 4) {
-                        fourLettersAtomic.incrementAndGet();
-//                        System.out.println("! " + texts[i] + " is fourQueueLetters text");
-                    }
-                    if (texts[i].length() == 5) {
-                        fiveLettersAtomic.incrementAndGet();
-//                        System.out.println("! " + texts[i] + " is fiveQueueLetters");
-                    }
-                } else {
-//                    System.out.println(texts[i] + " is not QueueLetters text");
-                }
-                ;
+                if (queueLetterFlag)
+                    IncrementAndGetMethod(texts[i]);
 
             }
-
         };
-        Thread palindromThread = new Thread(palindrom);
-        Thread sameLettersThread = new Thread(oneSameLetter);
         Thread queueLettersThread = new Thread(queueLetter);
-        palindromThread.start();
-        sameLettersThread.start();
-        palindromThread.join();
-        sameLettersThread.join();
         queueLettersThread.start();
         queueLettersThread.join();
-
-        System.out.println("Красивых слов с длиной 3: " + threeLettersAtomic.get());
-        System.out.println("Красивых слов с длиной 4: " + fourLettersAtomic.get());
-        System.out.println("Красивых слов с длиной 5: " + fiveLettersAtomic.get());
-
     }
-
-    ;
-
-
-    public static String generateText(String letters, int length) {
-        Random random = new Random();
-        StringBuilder text = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            text.append(letters.charAt(random.nextInt(letters.length())));
-        }
-        return text.toString();
-    }
-
-
 }
