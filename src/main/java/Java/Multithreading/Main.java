@@ -11,6 +11,10 @@ public class Main {
     static AtomicInteger fourLettersAtomic = new AtomicInteger(0);
     static AtomicInteger fiveLettersAtomic = new AtomicInteger(0);
 
+    public static Thread palindromThread;
+    public static Thread sameLettersThread;
+    public static Thread queueLettersThread;
+    
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -21,9 +25,17 @@ public class Main {
         for (int i = 0; i < texts.length; i++)
             texts[i] = generateText("abc", 3 + random.nextInt(3));
 
-        TestPalindrom(texts, n);
-        TestOneSameLetter(texts, n);
-        TestQueueLetter(texts, n);
+        testPalindrom(texts, n);
+        testOneSameLetter(texts, n);
+        testQueueLetter(texts, n);
+
+        palindromThread.start();
+        sameLettersThread.start();
+        queueLettersThread.start();
+
+        palindromThread.join();
+        sameLettersThread.join();
+        queueLettersThread.join();
 
         System.out.println("Красивых слов с длиной 3: " + threeLettersAtomic.get());
         System.out.println("Красивых слов с длиной 4: " + fourLettersAtomic.get());
@@ -41,7 +53,7 @@ public class Main {
         return text.toString();
     }
 
-    private static void IncrementAndGetMethod(String text) {
+    private static void incrementAndGetMethod(String text) {
 
         switch (text.length()) {
             case 3:
@@ -56,7 +68,7 @@ public class Main {
         }
     }
 
-    public static void TestPalindrom(String[] texts, int n) throws InterruptedException {
+    public static void testPalindrom(String[] texts, int n) throws InterruptedException {
 
         Runnable palindrom = () -> {
 
@@ -74,18 +86,17 @@ public class Main {
                     right--;
                 }
                 if (palindromFlag)
-                    IncrementAndGetMethod(texts[i]);
+                    incrementAndGetMethod(texts[i]);
 
             }
         };
 
-        Thread palindromThread = new Thread(palindrom);
-        palindromThread.start();
-        palindromThread.join();
+        palindromThread = new Thread(palindrom);
+
     }
 
 
-    public static void TestOneSameLetter(String[] texts, int n) throws InterruptedException {
+    public static void testOneSameLetter(String[] texts, int n) throws InterruptedException {
 
         Runnable oneSameLetter = () -> {
 
@@ -101,17 +112,16 @@ public class Main {
                     current++;
                 }
                 if (oneLetterFlag)
-                    IncrementAndGetMethod(texts[i]);
+                    incrementAndGetMethod(texts[i]);
 
             }
         };
 
-        Thread sameLettersThread = new Thread(oneSameLetter);
-        sameLettersThread.start();
-        sameLettersThread.join();
+        sameLettersThread = new Thread(oneSameLetter);
+
     }
 
-    public static void TestQueueLetter(String[] texts, int n) throws InterruptedException {
+    public static void testQueueLetter(String[] texts, int n) throws InterruptedException {
         Runnable queueLetter = () -> {
             for (int i = 0; i < n; i++) {
                 boolean queueLetterFlag = true;
@@ -125,12 +135,11 @@ public class Main {
                     current++;
                 }
                 if (queueLetterFlag)
-                    IncrementAndGetMethod(texts[i]);
+                    incrementAndGetMethod(texts[i]);
 
             }
         };
-        Thread queueLettersThread = new Thread(queueLetter);
-        queueLettersThread.start();
-        queueLettersThread.join();
+        queueLettersThread = new Thread(queueLetter);
+
     }
 }
